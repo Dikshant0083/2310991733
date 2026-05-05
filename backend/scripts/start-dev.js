@@ -2,9 +2,14 @@ import { execFile, spawn } from 'node:child_process';
 import { promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
+import net from 'node:net';
 import dotenv from 'dotenv';
 
+const explicitPort = process.env.PORT;
 dotenv.config({ override: true });
+if (explicitPort) {
+  process.env.PORT = explicitPort;
+}
 
 const execFileAsync = promisify(execFile);
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -15,11 +20,43 @@ const delay = (ms) => new Promise((resolve) => {
   setTimeout(resolve, ms);
 });
 
-const parseNetstatOutput = (stdout) =>
+const isPortAvailable = (targetPort) =>
+  new Promise((resolve, reject) => {
+    const server = net.createServer();
+
+    server.once('error', (error) => {
+      if (error?.code === 'EADDRINUSE') {
+        resolve(false);
+        return;
+      }
+
+      reject(error);
+    });
+
+    server.once('listening', () => {
+      server.close((closeError) => {
+        if (closeError) {
+          reject(closeError);
+          return;
+        }
+
+        resolve(true);
+      });
+    });
+
+    server.listen(targetPort);
+  });
+
+const parseNetstatOutput = (stdout, targetPort) =>
   stdout
     .split(/\r?\n/)
     .map((line) => line.trim())
     .filter((line) => line.includes('LISTENING'))
+    .filter((line) => {
+      const parts = line.split(/\s+/);
+      const localAddress = parts[1] || '';
+      return localAddress.endsWith(`:${targetPort}`);
+    })
     .map((line) => {
       const parts = line.split(/\s+/);
       const pid = Number.parseInt(parts.at(-1), 10);
@@ -29,25 +66,12 @@ const parseNetstatOutput = (stdout) =>
 
 const getListeningPids = async (targetPort) => {
   if (process.platform === 'win32') {
-    try {
-      const { stdout } = await execFileAsync(
-        'cmd.exe',
-        ['/c', `netstat -ano | findstr :${targetPort}`],
-        {
-          cwd: projectRoot,
-          windowsHide: true,
-        }
-      );
+    const { stdout } = await execFileAsync('netstat.exe', ['-ano'], {
+      cwd: projectRoot,
+      windowsHide: true,
+    });
 
-      return parseNetstatOutput(stdout);
-    } catch (error) {
-      const message = error?.stdout || error?.message || '';
-      if (/no matches found/i.test(message) || !message.trim()) {
-        return [];
-      }
-
-      throw error;
-    }
+    return parseNetstatOutput(stdout, targetPort);
   }
 
   try {
@@ -82,8 +106,8 @@ const terminatePid = async (pid) => {
 
 const waitForPortToFree = async (targetPort) => {
   for (let attempt = 0; attempt < 20; attempt += 1) {
-    const remainingPids = await getListeningPids(targetPort);
-    if (remainingPids.length === 0) {
+    const available = await isPortAvailable(targetPort);
+    if (available) {
       return true;
     }
 
@@ -94,9 +118,25 @@ const waitForPortToFree = async (targetPort) => {
 };
 
 const freePortIfNeeded = async (targetPort) => {
-  const listeningPids = await getListeningPids(targetPort);
-  if (listeningPids.length === 0) {
+  const available = await isPortAvailable(targetPort);
+  if (available) {
     return;
+  }
+
+  let listeningPids = [];
+
+  try {
+    listeningPids = await getListeningPids(targetPort);
+  } catch (error) {
+    throw new Error(
+      `Port ${targetPort} is already in use and the dev helper could not inspect the owning process. Stop the existing process manually or start the backend with a different PORT.`
+    );
+  }
+
+  if (listeningPids.length === 0) {
+    throw new Error(
+      `Port ${targetPort} is already in use. Stop the existing process manually or start the backend with a different PORT.`
+    );
   }
 
   process.stdout.write(
@@ -119,13 +159,37 @@ const freePortIfNeeded = async (targetPort) => {
   }
 };
 
+const getDevRuntime = () => {
+  if (process.platform === 'win32') {
+    return {
+      command: process.execPath,
+      args: ['src/index.js'],
+      label: 'node',
+    };
+  }
+
+  return {
+    command: process.execPath,
+    args: [nodemonEntrypoint, 'src/index.js'],
+    label: 'nodemon',
+  };
+};
+
 const run = async () => {
   await freePortIfNeeded(port);
 
-  const child = spawn(process.execPath, [nodemonEntrypoint, 'src/index.js'], {
+  const runtime = getDevRuntime();
+  const child = spawn(runtime.command, runtime.args, {
     cwd: projectRoot,
     stdio: 'inherit',
     env: process.env,
+  });
+
+  child.on('error', (error) => {
+    process.stderr.write(
+      `[dev-helper] Failed to launch ${runtime.label}: ${error instanceof Error ? error.message : String(error)}\n`
+    );
+    process.exit(1);
   });
 
   const forwardSignal = (signal) => {

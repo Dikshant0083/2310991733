@@ -17,7 +17,11 @@ import dotenv from 'dotenv';
 
 // Load environment variables
 // Override any pre-existing environment variables so local .env settings are used in development.
+const explicitPort = process.env.PORT;
 dotenv.config({ override: true });
+if (explicitPort) {
+  process.env.PORT = explicitPort;
+}
 
 const logger = createLogger('Main');
 const app = express();

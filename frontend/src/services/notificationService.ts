@@ -12,6 +12,7 @@ import logger from '../utils/logger';
 const INTERNAL_API_BASE =
   process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1';
 const EVALUATION_PROXY_ROUTE = '/api/evaluation/notifications';
+const STATS_PROXY_ROUTE = '/api/notifications/stats';
 const DEFAULT_STUDENT_ID = process.env.NEXT_PUBLIC_STUDENT_ID || '1042';
 
 const internalClient = axios.create({
@@ -136,6 +137,26 @@ const normalizeNotificationsPayload = (payload: any) => {
   return { notifications, pagination };
 };
 
+const getErrorMessage = (error: unknown, fallbackMessage: string) => {
+  if (axios.isAxiosError(error)) {
+    const apiMessage = error.response?.data?.error?.message;
+
+    if (typeof apiMessage === 'string' && apiMessage.trim()) {
+      return apiMessage;
+    }
+
+    if (typeof error.message === 'string' && error.message.trim()) {
+      return error.message;
+    }
+  }
+
+  if (error instanceof Error && error.message.trim()) {
+    return error.message;
+  }
+
+  return fallbackMessage;
+};
+
 class NotificationService {
   async getNotifications(options: {
     page?: number;
@@ -177,31 +198,10 @@ class NotificationService {
         unreadCount: filtered.filter((notification) => !notification.isRead).length,
       };
     } catch (error) {
-      logger.warn('Evaluation API unavailable, falling back to backend notifications', {
-        reason: error instanceof Error ? error.message : String(error),
+      logger.error('Unable to fetch notifications from proxy route', error, {
+        route: EVALUATION_PROXY_ROUTE,
       });
-
-      const backendResponse = await internalClient.get<
-        APIResponse<{
-          notifications: Notification[];
-          pagination: PaginationInfo;
-        }>
-      >('/notifications', {
-        params: {
-          page,
-          limit,
-          type: type === 'all' ? undefined : type,
-          status,
-        },
-      });
-
-      return {
-        notifications: backendResponse.data.data.notifications.map((item) =>
-          normalizeNotification(item as unknown as Record<string, any>)
-        ),
-        pagination: backendResponse.data.data.pagination,
-        unreadCount: Number(backendResponse.data.meta.unreadCount || 0),
-      };
+      throw new Error(getErrorMessage(error, 'Failed to fetch notifications'));
     }
   }
 
@@ -225,7 +225,7 @@ class NotificationService {
   }
 
   async getStats(): Promise<NotificationStats> {
-    const response = await internalClient.get<APIResponse<NotificationStats>>('/notifications/stats');
+    const response = await axios.get<APIResponse<NotificationStats>>(STATS_PROXY_ROUTE);
     return response.data.data;
   }
 

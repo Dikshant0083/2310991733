@@ -98,7 +98,7 @@ export async function GET(request: NextRequest) {
     });
 
     if (!upstreamResponse.ok) {
-      return fetchBackendFallback(request, upstreamResponse.status);
+      return await fetchBackendFallback(request, upstreamResponse.status);
     }
 
     const body = await toJsonBody(upstreamResponse);
