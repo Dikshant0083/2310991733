@@ -1,0 +1,248 @@
+.heroCard,
+.runtimeCard,
+.metricCard,
+.priorityCard,
+.pipelineCard {
+  border: 1px solid rgba(19, 40, 61, 0.08);
+  box-shadow: var(--shadow-soft);
+}
+
+.heroCard {
+  border-radius: 32px !important;
+  background:
+    radial-gradient(circle at 16% 18%, rgba(101, 211, 208, 0.2), transparent 24%),
+    radial-gradient(circle at 88% 10%, rgba(238, 129, 88, 0.18), transparent 24%),
+    linear-gradient(135deg, rgba(8, 24, 39, 0.98), rgba(16, 47, 73, 0.96));
+  color: #f7fbfc;
+  overflow: hidden;
+}
+
+.heroContent {
+  padding: 32px !important;
+}
+
+.heroCopy {
+  max-width: 42rem;
+}
+
+.eyebrow {
+  color: rgba(245, 251, 252, 0.74) !important;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-size: 0.72rem !important;
+  font-weight: 700 !important;
+}
+
+.heroTitle {
+  font-size: clamp(2.4rem, 4vw, 4.4rem) !important;
+  font-weight: 800 !important;
+  line-height: 1.02 !important;
+  letter-spacing: -0.04em !important;
+}
+
+.heroDescription {
+  max-width: 42rem;
+  color: rgba(231, 240, 244, 0.8) !important;
+}
+
+.heroStatus {
+  min-width: min(100%, 18rem);
+}
+
+.softChip {
+  color: #edf6f9 !important;
+  border-color: rgba(237, 246, 249, 0.18) !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+
+.runtimeCard {
+  height: 100%;
+  border-radius: 28px !important;
+  background:
+    radial-gradient(circle at top right, rgba(217, 150, 49, 0.16), transparent 34%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(244, 249, 255, 0.9));
+}
+
+.runtimeContent,
+.priorityContent,
+.pipelineContent {
+  padding: 28px !important;
+}
+
+.runtimeIcon {
+  color: #0b7087;
+}
+
+.runtimePanel {
+  padding: 18px;
+  border-radius: 20px;
+  background: rgba(244, 250, 255, 0.92);
+  border: 1px solid rgba(19, 40, 61, 0.08);
+}
+
+.runtimeLabel {
+  color: #7a8b99 !important;
+}
+
+.runtimeChecklist {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-top: 8px;
+}
+
+.metricCard {
+  border-radius: 26px !important;
+  overflow: hidden;
+}
+
+.metricContent {
+  padding: 24px !important;
+}
+
+.metricIcon {
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.78);
+  color: #143349;
+}
+
+.metricLabel {
+  font-weight: 700 !important;
+  color: #445f70 !important;
+}
+
+.metricValue {
+  font-size: clamp(2rem, 3vw, 2.9rem);
+  font-weight: 800;
+  line-height: 1;
+}
+
+.teal {
+  background: linear-gradient(180deg, rgba(15, 143, 155, 0.12), rgba(255, 255, 255, 0.96));
+}
+
+.ink {
+  background: linear-gradient(180deg, rgba(16, 47, 73, 0.12), rgba(255, 255, 255, 0.96));
+}
+
+.gold {
+  background: linear-gradient(180deg, rgba(217, 150, 49, 0.14), rgba(255, 255, 255, 0.96));
+}
+
+.sun {
+  background: linear-gradient(180deg, rgba(238, 129, 88, 0.14), rgba(255, 255, 255, 0.96));
+}
+
+.priorityCard,
+.pipelineCard {
+  border-radius: 30px !important;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(247, 251, 255, 0.92));
+}
+
+.loadingState,
+.emptyState {
+  min-height: 220px;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  gap: 12px;
+}
+
+.emptyState {
+  color: #4e6677;
+}
+
+.priorityRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+  padding: 18px 0;
+  border-top: 1px solid rgba(19, 40, 61, 0.08);
+  transition: transform 180ms ease;
+}
+
+.priorityRow:hover {
+  transform: translateX(4px);
+}
+
+.priorityRow:first-of-type {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.priorityMeta {
+  min-width: 0;
+}
+
+.rankBadge {
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, #0f8f9b, #d99631);
+  color: #fff;
+  font-weight: 800;
+  flex-shrink: 0;
+  box-shadow: 0 12px 24px rgba(15, 143, 155, 0.18);
+}
+
+.priorityTime {
+  color: #6c8291 !important;
+  white-space: nowrap;
+}
+
+.lane {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  padding: 16px 0;
+  border-top: 1px solid rgba(19, 40, 61, 0.08);
+}
+
+.lane:first-of-type {
+  padding-top: 4px;
+  border-top: 0;
+}
+
+.laneMarker {
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  margin-top: 8px;
+  flex-shrink: 0;
+}
+
+.inkMarker {
+  background: #143349;
+  box-shadow: 0 0 0 8px rgba(20, 51, 73, 0.1);
+}
+
+.goldMarker {
+  background: #d99631;
+  box-shadow: 0 0 0 8px rgba(217, 150, 49, 0.1);
+}
+
+.sunMarker {
+  background: #ee8158;
+  box-shadow: 0 0 0 8px rgba(238, 129, 88, 0.12);
+}
+
+@media (max-width: 900px) {
+  .heroContent,
+  .runtimeContent,
+  .priorityContent,
+  .pipelineContent,
+  .metricContent {
+    padding: 22px !important;
+  }
+
+  .priorityRow {
+    flex-direction: column;
+  }
+}
